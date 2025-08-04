@@ -251,3 +251,17 @@ export const verifyEmail = async (req, res) => {
         });
     }
 };
+
+export const isAuthenticated = async (req, res) => {
+    try {
+        return res.json({
+            success: true,
+            message: "User is authenticated."
+        });
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: "Session expired or invalid. Please log in again."
+        });
+    }
+};
