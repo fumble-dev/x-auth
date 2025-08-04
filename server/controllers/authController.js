@@ -1,6 +1,7 @@
 import userModel from "../models/userModel.js";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import transporter from "../config/nodemailer.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "iloveyou";
 const cookieOptions = {
@@ -42,8 +43,15 @@ export const register = async (req, res) => {
         });
 
         const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
-
         res.cookie('token', token, cookieOptions);
+
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: email,
+            subject: "Welcome to X-Auth",
+            text: `Welcome to X-Auth. Your account has been created with email id: ${email} `
+        }
+        await transporter.sendMail(mailOptions)
 
         return res.status(201).json({
             success: true,
@@ -134,6 +142,112 @@ export const logout = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Something went wrong during logout"
+        });
+    }
+};
+
+export const sendVerifyOtp = async (req, res) => {
+    try {
+        const { userId } = req;
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized. Please log in."
+            });
+        }
+
+        const user = await userModel.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        if (user.isAccountVerified) {
+            return res.status(403).json({
+                success: false,
+                message: "Account is already verified."
+            });
+        }
+
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const expireAt = Date.now() + 24 * 60 * 60 * 1000;
+
+        user.verifyOtp = otp;
+        user.verifyOtpExpireAt = expireAt;
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: user.email,
+            subject: "Account Verification OTP",
+            text: `Your OTP is ${otp}. It will expire in 24 hours.`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully"
+        });
+
+    } catch (error) {
+        console.error("OTP Error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong. Please try again later."
+        });
+    }
+};
+
+export const verifyEmail = async (req, res) => {
+    const { userId } = req;
+    const { otp } = req.body;
+
+    if (!userId || !otp) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing details."
+        });
+    }
+
+    try {
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
+        }
+
+        const isOtpInvalid = !user.verifyOtp || user.verifyOtp !== otp;
+        const isOtpExpired = user.verifyOtpExpireAt < Date.now();
+
+        if (isOtpInvalid || isOtpExpired) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired OTP. Please try again."
+            });
+        }
+
+        user.isAccountVerified = true;
+        user.verifyOtp = "";
+        user.verifyOtpExpireAt = 0;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Account verified successfully."
+        });
+
+    } catch (error) {
+        console.error("verifyEmail Error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong. Please try again later."
         });
     }
 };
