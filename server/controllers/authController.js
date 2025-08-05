@@ -265,3 +265,62 @@ export const isAuthenticated = async (req, res) => {
         });
     }
 };
+
+export const sendResetOtp = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: "Email is required to reset your password."
+        });
+    }
+
+    try {
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with this email."
+            });
+        }
+
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const expireAt = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        user.resetOtp = otp;
+        user.resetOtpExpireAt = expireAt;
+        await user.save();
+
+        const mailOptions = {
+            from: process.env.SENDER_EMAIL,
+            to: user.email,
+            subject: "🔑 Password Reset OTP - X-Auth",
+            text: ` Hi ${user.name},
+
+                    We received a request to reset your X-Auth password. Use the OTP below to proceed:
+
+                    👉 OTP: ${otp}
+
+                    This OTP is valid for 15 minutes. If you didn’t request this, you can ignore this email.
+
+                    Stay safe,  
+                    The X-Auth Team `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset OTP has been sent to your email."
+        });
+
+    } catch (error) {
+        console.error("sendResetOtp Error:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong. Please try again later."
+        });
+    }
+};
