@@ -30,7 +30,7 @@ export const register = async (req, res) => {
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                message: "User already exists."
+                message: "An account with this email already exists."
             });
         }
 
@@ -42,20 +42,31 @@ export const register = async (req, res) => {
             password: hashedPassword
         });
 
-        const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: "7d" });
+        const token = jwt.sign({ id: newUser._id }, JWT_SECRET, { expiresIn: '7d' });
         res.cookie('token', token, cookieOptions);
 
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: "Welcome to X-Auth",
-            text: `Welcome to X-Auth. Your account has been created with email id: ${email} `
-        }
-        await transporter.sendMail(mailOptions)
+            subject: "🎉 Welcome to X-Auth!",
+            text: `Hi ${name},
+
+                Welcome to X-Auth! We're excited to have you onboard.
+
+                You've successfully registered with the email: ${email}. 
+                You can now log in and start using our platform.
+
+                If you did not sign up, please contact us immediately.
+
+                Cheers,  
+                The X-Auth Team`
+        };
+
+        await transporter.sendMail(mailOptions);
 
         return res.status(201).json({
             success: true,
-            message: "User registered successfully",
+            message: "User registered successfully.",
             user: {
                 id: newUser._id,
                 name: newUser.name,
@@ -183,8 +194,18 @@ export const sendVerifyOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
-            subject: "Account Verification OTP",
-            text: `Your OTP is ${otp}. It will expire in 24 hours.`
+            subject: "🔐 X-Auth Verification OTP",
+            text: `Hi ${user.name},
+
+                To verify your X-Auth account, use the following One-Time Password (OTP):
+
+                👉 OTP: ${otp}
+
+                This code is valid for 24 hours. Do not share this OTP with anyone.
+
+                If you did not request this, you can safely ignore this email.
+
+                - The X-Auth Team`
         };
 
         await transporter.sendMail(mailOptions);
