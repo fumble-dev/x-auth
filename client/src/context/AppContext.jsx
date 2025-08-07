@@ -27,21 +27,28 @@ export const AppContextProvider = (props) => {
 
     const getAuthState = async () => {
         axios.defaults.withCredentials = true;
+
         try {
-            const { data } = await axios.post(backendUrl + '/api/auth/is-auth')
+            const { data } = await axios.post(backendUrl + "/api/auth/is-auth");
+
             if (data.success) {
-                setIsLoggedIn(true)
-                getUserData()
+                setIsLoggedIn(true);
+                await getUserData();
+            } else {
+                setIsLoggedIn(false);
+                setUserData(false);
             }
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                toast.error(error.response.data.message);
-            } else {
+            const status = error.response?.status;
 
-                toast.error("Something went wrong. Please try again.");
+            if (status !== 401) {
+                toast.error(error.response?.data?.message || "Something went wrong.");
             }
+
+            setIsLoggedIn(false);
+            setUserData(false);
         }
-    }
+    };
 
     useEffect(() => {
         getAuthState()
