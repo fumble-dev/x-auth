@@ -49,17 +49,18 @@ export const register = async (req, res) => {
             from: process.env.SENDER_EMAIL,
             to: email,
             subject: "🎉 Welcome to X-Auth!",
-            text: `Hi ${name},
+            text: `Hello ${name},
 
-                Welcome to X-Auth! We're excited to have you onboard.
+Welcome to X-Auth! We're thrilled to have you as part of our developer community.
 
-                You've successfully registered with the email: ${email}. 
-                You can now log in and start using our platform.
+Your account has been successfully created with the email: ${email}.
 
-                If you did not sign up, please contact us immediately.
+You can now log in and start building secure and seamless authentication experiences.
 
-                Cheers,  
-                The X-Auth Team`
+If you did not create this account, please contact our support team immediately.
+
+Best regards,
+The X-Auth Team`
         };
 
         await transporter.sendMail(mailOptions);
@@ -194,18 +195,19 @@ export const sendVerifyOtp = async (req, res) => {
         const mailOptions = {
             from: process.env.SENDER_EMAIL,
             to: user.email,
-            subject: "🔐 X-Auth Verification OTP",
-            text: `Hi ${user.name},
+            subject: "🔐 X-Auth Account Verification OTP",
+            text: `Hello ${user.name},
 
-                To verify your X-Auth account, use the following One-Time Password (OTP):
+To complete your registration and verify your X-Auth account, please use the following One-Time Password (OTP):
 
-                👉 OTP: ${otp}
+OTP: ${otp}
 
-                This code is valid for 24 hours. Do not share this OTP with anyone.
+This code is valid for the next 24 hours. For your security, do not share this OTP with anyone.
 
-                If you did not request this, you can safely ignore this email.
+If you did not request this verification, please ignore this email.
 
-                - The X-Auth Team`
+Thanks for joining us!
+- The X-Auth Team`
         };
 
         await transporter.sendMail(mailOptions);
@@ -318,16 +320,16 @@ export const sendResetOtp = async (req, res) => {
             from: process.env.SENDER_EMAIL,
             to: user.email,
             subject: "🔑 Password Reset OTP - X-Auth",
-            text: ` Hi ${user.name},
+            text: `Hello ${user.name},
 
-                    We received a request to reset your X-Auth password. Use the OTP below to proceed:
+We received a request to reset your X-Auth password. Please use the following One-Time Password (OTP) to proceed:
 
-                    👉 OTP: ${otp}
+OTP: ${otp}
 
-                    This OTP is valid for 15 minutes. If you didn’t request this, you can ignore this email.
+This OTP is valid for 15 minutes. If you did not request this, you can safely ignore this email.
 
-                    Stay safe,  
-                    The X-Auth Team `
+Stay secure,
+The X-Auth Team`
         };
 
         await transporter.sendMail(mailOptions);
