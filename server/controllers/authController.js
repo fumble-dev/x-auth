@@ -4,12 +4,14 @@ import bcrypt from 'bcryptjs';
 import transporter from "../config/nodemailer.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "iloveyou";
+
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "none",
+    sameSite: process.env.NODE_ENV === 'production' ? "none" : "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000
 };
+
 
 export const register = async (req, res) => {
     try {
