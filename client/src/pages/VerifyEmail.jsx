@@ -1,12 +1,18 @@
 import React, { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets.js'
+import {toast} from 'react-toastify'
+import axios from 'axios'
+import { useContext } from 'react'
+import { AppContext } from '../context/AppContext.jsx'
 
 const VerifyEmail = () => {
 
   const inputRefs = useRef([])
   const navigate = useNavigate()
 
+    const { backendUrl } = useContext(AppContext)
+  
   const handleInput = (e, index) => {
     if (e.target.value.length > 0 && index < inputRefs.current.length - 1)
       inputRefs.current[index + 1].focus()
@@ -26,6 +32,18 @@ const VerifyEmail = () => {
         inputRefs.current[index].value = char
       }
     })
+  }
+
+  const onSubmitHandler = async(e) =>{
+    try {
+      axios.defaults.withCredentials = true;
+      e.preventDefault();
+      const otpArray = inputRefs.current.map(e=>e.value);
+      const otp = otpArray.join('');
+      const {data} = await axios.post(backendUrl+'/api/auth/verify-account',otp)
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
   return (
