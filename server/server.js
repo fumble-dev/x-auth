@@ -12,9 +12,10 @@ const PORT = process.env.PORT || 4000
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    credentials: true,
-    origin : process.env.VITE_URL
+  origin: [process.env.VITE_URL],
+  credentials: true
 }))
+
 
 app.get('/', (req, res) => {
     res.send('Home Route')
