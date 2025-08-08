@@ -14,32 +14,31 @@ const MONGODB_URI = process.env.MONGODB_URI;
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin:['https://x-auth-client.vercel.app', 'http://localhost:5173'],
+  origin: ['https://x-auth-client.vercel.app', 'http://localhost:5173'],
   credentials: true
 }))
 
 
 app.get('/', (req, res) => {
-    res.send('Home Route')
+  res.send('Home Route')
 })
 
-app.use('/api/auth',authRouter)
-app.use('/api/user',userRouter)
-
-
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`)
-})
-
-
+app.use('/api/auth', authRouter)
+app.use('/api/user', userRouter)
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => {
-  console.log("MongoDB connected");
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
+
+
+
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`)
 })
-.catch((err) => {
-  console.error("MongoDB connection error:", err);
-});
